@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <com.example.dotlinegame.CustomView.CustomWidget
+        android:id="@+id/gameBoard"
+        android:layout_width="387dp"
+        android:layout_height="372dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.043" />
+
+    <TextView
+        android:id="@+id/playerScore1"
+        android:layout_width="wrap_content"
+        android:layout_height="26dp"
+        android:text="RED:                       0"
+        android:textColor="@color/darkRed"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.398"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/gameBoard"
+        app:layout_constraintVertical_bias="0.247" />
+
+    <TextView
+        android:id="@+id/redbadge"
+        android:layout_width="24dp"
+        android:layout_height="23dp"
+        android:gravity="center"
+        android:textColor="@color/darkRed"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.18"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/gameBoard"
+        app:layout_constraintVertical_bias="0.246" />
+
+    <TextView
+        android:id="@+id/bluebadge"
+        android:layout_width="24dp"
+        android:layout_height="23dp"
+        android:gravity="center"
+        android:textColor="@color/darkRed"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.18"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/gameBoard"
+        app:layout_constraintVertical_bias="0.342" />
+
+    <TextView
+        android:id="@+id/greenbadge"
+        android:layout_width="24dp"
+        android:layout_height="23dp"
+        android:gravity="center"
+        android:textColor="@color/darkRed"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.18"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/gameBoard"
+        app:layout_constraintVertical_bias="0.455" />
+
+    <TextView
+        android:id="@+id/yellowbadge"
+        android:layout_width="24dp"
+        android:layout_height="23dp"
+        android:gravity="center"
+        android:textColor="@color/darkRed"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.18"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/gameBoard"
+        app:layout_constraintVertical_bias="0.571" />
+
+    <TextView
+        android:id="@+id/pinkbadge"
+        android:layout_width="24dp"
+        android:layout_height="23dp"
+        android:gravity="center"
+        android:textColor="@color/darkRed"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.18"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/gameBoard"
+        app:layout_constraintVertical_bias="0.685" />
+
+    <TextView
+        android:id="@+id/playerScore3"
+        android:layout_width="wrap_content"
+        android:layout_height="26dp"
+        android:text="GREEN:                  0"
+        android:textColor="@color/darkGreen"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.398"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/gameBoard"
+        app:layout_constraintVertical_bias="0.46" />
+
+    <TextView
+        android:id="@+id/playerScore4"
+        android:layout_width="wrap_content"
+        android:layout_height="26dp"
+        android:text="YELLOW:               0"
+        android:textColor="@color/darkYellow"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.398"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/gameBoard"
+        app:layout_constraintVertical_bias="0.576" />
+
+    <TextView
+        android:id="@+id/playerScore5"
+        android:layout_width="wrap_content"
+        android:layout_height="26dp"
+        android:text="PINK:                      0"
+        android:textColor="@color/purple"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.398"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/gameBoard"
+        app:layout_constraintVertical_bias="0.692" />
+
+    <TextView
+        android:id="@+id/playerScore2"
+        android:layout_width="wrap_content"
+        android:layout_height="26dp"
+        android:text="BLUE:                     0"
+        android:textColor="@color/darkBlue"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.398"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/gameBoard"
+        app:layout_constraintVertical_bias="0.347"
+
+        />
+
+    <Button
+        android:id="@+id/undoBut"
+        android:layout_width="79dp"
+        android:layout_height="54dp"
+        android:layout_marginStart="130dp"
+        android:layout_marginEnd="193dp"
+        android:layout_marginBottom="28dp"
+        android:background="@drawable/undobuttondrawable"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.777"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/playerScore5"
+        app:layout_constraintVertical_bias="1.0" />
+
+    <TextView
+        android:id="@+id/playerIndicator"
+        android:layout_width="15dp"
+        android:layout_height="17dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.914"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.565" />
+
+    <FrameLayout
+        android:id="@+id/gameOverfragment"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.35"
+        app:layout_constraintStart_toStartOf="parent"
+
+        app:layout_constraintTop_toBottomOf="@+id/gameBoard"
+        app:layout_constraintVertical_bias="0.096" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

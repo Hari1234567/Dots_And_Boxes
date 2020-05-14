@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">Dots And Boxes</string>
+    <string name="play_against_ai">Play Against AI</string>
+    <string name="play_against_human">PLAY AGAINST HUMAN</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="begin">BEGIN</string>
+    <string name="no_of_players">Players:</string>
+    <string name="dimension">Dimension:</string>
+    <string name="difficulty">DIFFICULTY</string>
+    <string name="undo">UNDO</string>
+    <string name="game_over">GAME OVER</string>
+</resources>
