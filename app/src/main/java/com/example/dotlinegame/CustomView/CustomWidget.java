@@ -18,6 +18,7 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.widget.Button;
 import android.widget.TextView;
@@ -25,6 +26,7 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.constraintlayout.solver.widgets.Rectangle;
+import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.example.dotlinegame.MainActivity;
 import com.example.dotlinegame.MainMenu;
@@ -70,6 +72,7 @@ public class CustomWidget extends View {
     TextView playerIndicator;
     TextView[] badges;
     boolean over=false;
+    float offset=pixelConvert(10);
 
     public CustomWidget(Context context) {
         super(context);
@@ -165,8 +168,9 @@ public class CustomWidget extends View {
         linePaints[1].setStrokeWidth(10);
         pointsX = new ArrayList<Float>();
         pointsY = new ArrayList<Float>();
+        offset=pixelConvert(spacing/2);
         for (int i = 0; i < dimension; i++) {
-            pointsX.add((i + 1) * pixelConvert(spacing));
+            pointsX.add((i+1) * pixelConvert(spacing)-offset);
             pointsY.add((i + 1) * pixelConvert(spacing));
 
         }
@@ -185,306 +189,308 @@ public class CustomWidget extends View {
     @Override
     protected void onDraw(Canvas canvas) {
 
-            int totalFill = 0;
-
-            badges[0] = (TextView) mainActivity.findViewById(R.id.redbadge);
-            badges[1] = (TextView) mainActivity.findViewById(R.id.bluebadge);
-            badges[2] = (TextView) mainActivity.findViewById(R.id.greenbadge);
-            badges[3] = (TextView) mainActivity.findViewById(R.id.yellowbadge);
-            badges[4] = (TextView) mainActivity.findViewById(R.id.pinkbadge);
+        int totalFill = 0;
 
 
-            for (int i = 0; i < dimension; i++) {
-                for (int j = 0; j < dimension; j++) {
-                    canvas.drawCircle(pointsX.get(i), pointsY.get(j), 7, pointPaint);
+        badges[0] = (TextView) mainActivity.findViewById(R.id.redbadge);
+        badges[1] = (TextView) mainActivity.findViewById(R.id.bluebadge);
+        badges[2] = (TextView) mainActivity.findViewById(R.id.greenbadge);
+        badges[3] = (TextView) mainActivity.findViewById(R.id.yellowbadge);
+        badges[4] = (TextView) mainActivity.findViewById(R.id.pinkbadge);
 
+
+        for (int i = 0; i < dimension; i++) {
+            for (int j = 0; j < dimension; j++) {
+                canvas.drawCircle(pointsX.get(i), pointsY.get(j), 7, pointPaint);
+
+            }
+        }
+        for (int i = 0; i < lines.size(); i++) {
+            if (i == lines.size() - 1) {
+                canvas.drawLine(lines.get(i).getStartX(), lines.get(i).getStartY(), lines.get(i).getStopX(), lines.get(i).getStopY(), recentLinePaint);
+            } else
+                canvas.drawLine(lines.get(i).getStartX(), lines.get(i).getStartY(), lines.get(i).getStopX(), lines.get(i).getStopY(), linePaints[lines.get(i).getPlayerID()]);
+        }
+        scores[1]=0;
+        for (int i = 0; i < squares.size(); i++) {
+            if (squares.get(i).getFillFactor() == 4) {
+                totalFill++;
+                Rect rect = new Rect((int) squares.get(i).getX(0), (int) squares.get(i).getY(0), (int) squares.get(i).getX(2), (int) squares.get(i).getY(2));
+                canvas.drawRect(rect, squarePaints[squares.get(i).getPlayerID()]);
+                if(squares.get(i).getPlayerID()==1){
+                    scores[1]++;
                 }
             }
-            for (int i = 0; i < lines.size(); i++) {
-                if (i == lines.size() - 1) {
-                    canvas.drawLine(lines.get(i).getStartX(), lines.get(i).getStartY(), lines.get(i).getStopX(), lines.get(i).getStopY(), recentLinePaint);
-                } else
-                    canvas.drawLine(lines.get(i).getStartX(), lines.get(i).getStartY(), lines.get(i).getStopX(), lines.get(i).getStopY(), linePaints[lines.get(i).getPlayerID()]);
-            }
-            scores[1]=0;
-            for (int i = 0; i < squares.size(); i++) {
-                if (squares.get(i).getFillFactor() == 4) {
-                    totalFill++;
-                    Rect rect = new Rect((int) squares.get(i).getX(0), (int) squares.get(i).getY(0), (int) squares.get(i).getX(2), (int) squares.get(i).getY(2));
-                    canvas.drawRect(rect, squarePaints[squares.get(i).getPlayerID()]);
-                    if(squares.get(i).getPlayerID()==1){
-                        scores[1]++;
-                    }
-                }
-            }
+        }
 
         TextView txt=(TextView)mainActivity.findViewById(R.id.playerScore2);
         txt.setText("BLUE:                     " + Integer.toString(scores[1]));
-            Activity parentActivity = (Activity) getContext();
-            playerIndicator = (TextView) parentActivity.findViewById(R.id.playerIndicator);
-            playerIndicator.setBackgroundColor(squarePaints[turn].getColor());
-            Button undoBut = (Button) parentActivity.findViewById(R.id.undoBut);
+        Activity parentActivity = (Activity) getContext();
+        playerIndicator = (TextView) parentActivity.findViewById(R.id.playerIndicator);
+        playerIndicator.setBackgroundColor(squarePaints[turn].getColor());
+        Button undoBut = (Button) parentActivity.findViewById(R.id.undoBut);
 
-            undoBut.setEnabled(lines.size() != 0);
-            if (totalFill == (dimension - 1) * (dimension - 1)) {
-                undoBut.setEnabled(false);
-                if (!gameOver) {
-                    mainActivity.loadGameOver();
-                    gameOver = true;
+        undoBut.setEnabled(lines.size() != 0);
+        if (totalFill == (dimension - 1) * (dimension - 1)) {
+            undoBut.setEnabled(false);
+            if (!gameOver) {
+                mainActivity.loadGameOver();
+                gameOver = true;
 
 
-                    Vibrator v = (Vibrator) mainActivity.getSystemService(Context.VIBRATOR_SERVICE);
+                Vibrator v = (Vibrator) mainActivity.getSystemService(Context.VIBRATOR_SERVICE);
 
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 
-                        v.vibrate(VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE));
-                    } else {
-                        //deprecated in API 26
-                        v.vibrate(500);
+                    v.vibrate(VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE));
+                } else {
+                    //deprecated in API 26
+                    v.vibrate(500);
 
+                }
+
+
+                int first, second, third;
+                first = second = third = -1;
+
+                for (int i = 0; i < numPlayers; i++) {
+                    if (scores[i] >first) {
+                        third = second;
+                        second = first;
+                        first = scores[i];
+                    } else if (scores[i] > second && scores[i]!=first) {
+                        third = second;
+                        second = scores[i];
+                    } else if (scores[i] > third&& scores[i]!=second) {
+                        third = scores[i];
                     }
+                }
+                //Toast.makeText(getContext(),Integer.toString(first)+Integer.toString(second)+Integer.toString(third),Toast.LENGTH_SHORT).show();
+                for (int i = 0; i < numPlayers; i++) {
+
+                    if (scores[i] == first) {
+                        badges[i].setBackground(getResources().getDrawable(R.drawable.gold));
+                        badges[i].setText("1");
+                        badges[i].setTextColor(Color.WHITE);
 
 
-                    int first, second, third;
-                    first = second = third = -1;
+                    } else if (scores[i] == second) {
+                        badges[i].setBackground(getResources().getDrawable(R.drawable.silver));
+                        badges[i].setText("2");
+                        badges[i].setTextColor(Color.WHITE);
 
-                    for (int i = 0; i < numPlayers; i++) {
-                        if (scores[i] >first) {
-                            third = second;
-                            second = first;
-                            first = scores[i];
-                        } else if (scores[i] > second && scores[i]!=first) {
-                            third = second;
-                            second = scores[i];
-                        } else if (scores[i] > third&& scores[i]!=second) {
-                            third = scores[i];
-                        }
-                    }
-                    //Toast.makeText(getContext(),Integer.toString(first)+Integer.toString(second)+Integer.toString(third),Toast.LENGTH_SHORT).show();
-                    for (int i = 0; i < numPlayers; i++) {
+                    } else if (scores[i] == third) {
+                        badges[i].setBackground(getResources().getDrawable(R.drawable.bronze));
+                        badges[i].setText("3");
+                        badges[i].setTextColor(Color.WHITE);
 
-                        if (scores[i] == first) {
-                            badges[i].setBackground(getResources().getDrawable(R.drawable.gold));
-                            badges[i].setText("1");
-                            badges[i].setTextColor(Color.WHITE);
-
-
-                        } else if (scores[i] == second) {
-                            badges[i].setBackground(getResources().getDrawable(R.drawable.silver));
-                            badges[i].setText("2");
-                            badges[i].setTextColor(Color.WHITE);
-
-                        } else if (scores[i] == third) {
-                            badges[i].setBackground(getResources().getDrawable(R.drawable.bronze));
-                            badges[i].setText("3");
-                            badges[i].setTextColor(Color.WHITE);
-
-                        }
                     }
                 }
             }
+        }
 
     }
     boolean lineadded=false;
     @Override
     public boolean onTouchEvent(MotionEvent event) {
 
-           boolean value = super.onTouchEvent(event);
+        boolean value = super.onTouchEvent(event);
         if(!gameOver) {
-           if (turn == 0 || !MainMenu.AIMode) {
-               try {
-                   boolean flag = true;
+            if (turn == 0 || !MainMenu.AIMode) {
+                try {
+                    boolean flag = true;
 
-                   switch (event.getAction()) {
+                    switch (event.getAction()) {
 
-                       case MotionEvent.ACTION_DOWN:
+                        case MotionEvent.ACTION_DOWN:
 
-                           startX = event.getX();
-                           startY = event.getY();
+                            startX = event.getX();
+                            startY = event.getY();
 
+                            if ((startX+offset) < pointsX.get(pointsX.size()-1) && startY < pixelConvert(spacing) * dimension) {
+                                if (startX / pixelConvert(spacing) - (int) (startX / pixelConvert(spacing) )<= 0.5f || startX > pixelConvert(spacing * dimension)) {
+                                    startX = pointsX.get((int) (startX) / (int) pixelConvert(spacing));
 
-                           if (startX < pixelConvert(spacing) * dimension && startY < pixelConvert(spacing) * dimension) {
-                               if (startX / pixelConvert(spacing) - (int) startX / (int) pixelConvert(spacing) <= 0.5f || startX > pixelConvert(spacing * dimension)) {
-                                   startX = pointsX.get((int) (startX) / (int) pixelConvert(spacing));
-                               } else if (startX / pixelConvert(spacing) - (int) startX / (int) pixelConvert(spacing) > 0.5f) {
-                                   startX = pointsX.get((int) (startX) / (int) pixelConvert(spacing)) + pixelConvert(spacing);
-                               }
-                               if (startY / pixelConvert(spacing) - (int) startY / (int) pixelConvert(spacing) <= 0.5f || startY > pixelConvert(spacing * dimension)) {
-                                   startY = pointsY.get((int) (startY) / (int) pixelConvert(spacing));
-                               } else if (startY / pixelConvert(spacing) - (int) startY / (int) pixelConvert(spacing) > 0.5f) {
-                                   startY = pointsY.get((int) (startY) / (int) pixelConvert(spacing)) + pixelConvert(spacing);
-                               }
-                               startX -= pixelConvert(spacing);
-                               startY -= pixelConvert(spacing);
-                           } else {
-                               if (startX > dimension * pixelConvert(spacing)) {
-                                   startX = dimension * pixelConvert(spacing);
-                                   if (startY / pixelConvert(spacing) - (int) startY / (int) pixelConvert(spacing) <= 0.5f || startY > pixelConvert(spacing * dimension)) {
-                                       startY = pointsY.get((int) (startY) / (int) pixelConvert(spacing));
-                                   } else if (startY / pixelConvert(spacing) - (int) startY / (int) pixelConvert(spacing) > 0.5f) {
-                                       startY = pointsY.get((int) (startY) / (int) pixelConvert(spacing)) + pixelConvert(spacing);
-                                   }
-                                   startY -= pixelConvert(spacing);
-                               }
-                               if (startY > dimension * pixelConvert(spacing)) {
-                                   startY = dimension * pixelConvert(spacing);
+                                } else if ((startX+offset) / pixelConvert(spacing) - (int) (startX /  pixelConvert(spacing)) > 0.5f) {
+                                    startX = pointsX.get((int) (startX) / (int) pixelConvert(spacing)) + pixelConvert(spacing);
 
-                                   if (startX / pixelConvert(spacing) - (int) startX / (int) pixelConvert(spacing) <= 0.5f || startX > pixelConvert(spacing * dimension)) {
-                                       startX = pointsX.get((int) (startX) / (int) pixelConvert(spacing));
-                                   } else if (startX / pixelConvert(spacing) - (int) startX / (int) pixelConvert(spacing) > 0.5f) {
-                                       startX = pointsX.get((int) (startX) / (int) pixelConvert(spacing)) + pixelConvert(spacing);
-                                   }
-                                   startX -= pixelConvert(spacing);
-                               }
+                                }
+                                if (startY / pixelConvert(spacing) - (int) startY / (int) pixelConvert(spacing) <= 0.5f || startY > pixelConvert(spacing * dimension)) {
+                                    startY = pointsY.get((int) (startY) / (int) pixelConvert(spacing));
+                                } else if (startY / pixelConvert(spacing) - (int) startY / (int) pixelConvert(spacing) > 0.5f) {
+                                    startY = pointsY.get((int) (startY) / (int) pixelConvert(spacing)) + pixelConvert(spacing);
+                                }
+                                startX -= pixelConvert(spacing);
+                                startY -= pixelConvert(spacing);
+                            } else {
+                                if (startX > dimension * pixelConvert(spacing)-offset) {
+                                    startX = pointsX.get(pointsX.size()-1);
+                                    if (startY / pixelConvert(spacing) - (int) startY / (int) pixelConvert(spacing) <= 0.5f || startY > pixelConvert(spacing * dimension)) {
+                                        startY = pointsY.get((int) (startY) / (int) pixelConvert(spacing));
+                                    } else if (startY / pixelConvert(spacing) - (int) startY / (int) pixelConvert(spacing) > 0.5f) {
+                                        startY = pointsY.get((int) (startY) / (int) pixelConvert(spacing)) + pixelConvert(spacing);
+                                    }
+                                    startY -= pixelConvert(spacing);
+                                }
+                                if (startY > dimension * pixelConvert(spacing)) {
+                                    startY = dimension * pixelConvert(spacing);
 
-                           }
-                           stopX = startX;
-                           stopY = startY;
-                           if (flag && startX >= pixelConvert(spacing) && startY >= pixelConvert(spacing)) {
-                               lineadded = true;
-                               lines.add(new Line(startX, startY, stopX, stopY));
-                           }
+                                    if (startX / pixelConvert(spacing) - (int) startX / (int) pixelConvert(spacing) <= 0.5f || startX > pixelConvert(spacing * dimension)) {
+                                        startX = pointsX.get((int) (startX) / (int) pixelConvert(spacing));
+                                    } else if (startX / pixelConvert(spacing) - (int) startX / (int) pixelConvert(spacing) > 0.5f) {
+                                        startX = pointsX.get((int) (startX) / (int) pixelConvert(spacing)) + pixelConvert(spacing);
+                                    }
+                                    startX -= pixelConvert(spacing);
+                                }
 
-                           postInvalidate();
+                            }
+                            stopX = startX;
+                            stopY = startY;
+                            if (flag && startX >= pixelConvert(spacing)-offset && startY >= pixelConvert(spacing) && (startX+offset)%pixelConvert(spacing)==0) {
+                                lineadded = true;
+                                lines.add(new Line(startX, startY, stopX, stopY));
+                            }
 
-
-                           return true;
-                       case MotionEvent.ACTION_MOVE:
-                           //if (!lines.get(lines.size() - 1).isReady()) {
-
-                           stopX = event.getX();
-                           stopY = event.getY();
-
-                           if (dist(startX, startY, stopX, stopY) > pixelConvert(spacing)) {
-                               if (Math.abs(startX - stopX) > Math.abs(startY - stopY)) {
-                                   stopY = startY;
-                                   stopX = startX + sign(stopX - startX) * pixelConvert(spacing);
-                               } else {
-                                   stopX = startX;
-                                   stopY = startY + sign(stopY - startY) * pixelConvert(spacing);
-                               }
-                           }
-                           if (lineadded) {
-                               lines.get(lines.size() - 1).setStopX(stopX);
-                               lines.get(lines.size() - 1).setStopY(stopY);
-                               lines.get(lines.size() - 1).setPlayerID(turn);
-                           }
-                           postInvalidate();
-
-                           return true;
-
-                       case MotionEvent.ACTION_UP:
+                            postInvalidate();
 
 
-                           boolean isEqual = false;
-                           for (int i = 0; i < lines.size() - 1; i++) {
-                               if (lines.get(i).isEqual(lines.get(lines.size() - 1))) {
-                                   isEqual = true;
-                                   break;
-                               }
-                           }
-                           float startX = lines.get(lines.size() - 1).getStartX();
-                           float startY = lines.get(lines.size() - 1).getStartY();
-                           float stopX = lines.get(lines.size() - 1).getStopX();
-                           float stopY = lines.get(lines.size() - 1).getStopY();
-                           if (((dist(startX, startY, stopX, stopY) < pixelConvert(spacing) || (startX - stopX) * (startY - stopY) != 0) || isEqual || (stopX > pixelConvert(dimension * spacing)) || (stopY > pixelConvert(dimension * spacing)) || (stopX < pixelConvert(spacing)) || (stopY < pixelConvert(spacing)))) {
-                               lines.remove(lines.size() - 1);
-                               lineadded=false;
-                               postInvalidate();
-                           } else {
+                            return true;
+                        case MotionEvent.ACTION_MOVE:
+                            //if (!lines.get(lines.size() - 1).isReady()) {
 
-                               flag = false;
-                               cut = false;
-                               cutOFF = 0;
-                               bestCount = 0;
-                               worstCount = 0;
-                               otherCount = 0;
-                               for (int i = 0; i < squares.size(); i++) {
-                                   if (squares.get(i).isEdge(lines.get(lines.size() - 1))) {
-                                       if (squares.get(i).getFillFactor() < 4) {
+                            stopX = event.getX();
+                            stopY = event.getY();
 
-                                           squares.get(i).calculateFillFator();
+                            if (dist(startX, startY, stopX, stopY) > pixelConvert(spacing)) {
+                                if (Math.abs(startX - stopX) > Math.abs(startY - stopY)) {
+                                    stopY = startY;
+                                    stopX = startX + sign(stopX - startX) * pixelConvert(spacing);
+                                } else {
+                                    stopX = startX;
+                                    stopY = startY + sign(stopY - startY) * pixelConvert(spacing);
+                                }
+                            }
+                            if (lineadded) {
+                                lines.get(lines.size() - 1).setStopX(stopX);
+                                lines.get(lines.size() - 1).setStopY(stopY);
+                                lines.get(lines.size() - 1).setPlayerID(turn);
+                            }
+                            postInvalidate();
 
-                                       }
-                                       if (squares.get(i).getFillFactor() == 4) {
+                            return true;
 
-                                           MediaPlayer waterDrop = MediaPlayer.create(getContext(), R.raw.boxformsound);
-
-                                           waterDrop.start();
-
-                                           squares.get(i).setPlayerID(turn);
-                                           squareFilled = true;
-                                           scores[turn]++;
-                                           totalFill++;
-                                           TextView scoreText;
-                                           switch (turn) {
-
-                                               case 0:
-                                                   scoreText = (TextView) mainActivity.findViewById(R.id.playerScore1);
-                                                   scoreText.setText("RED:                       " + Integer.toString(scores[turn]));
-                                                   break;
-                                               case 1:
-                                                   scoreText = (TextView) mainActivity.findViewById(R.id.playerScore2);
-                                                   scoreText.setText("BLUE:                     " + Integer.toString(scores[turn]));
-                                                   break;
-                                               case 2:
-                                                   scoreText = (TextView) mainActivity.findViewById(R.id.playerScore3);
-                                                   scoreText.setText("GREEN:                 " + Integer.toString(scores[turn]));
-                                                   break;
-                                               case 3:
-                                                   scoreText = (TextView) mainActivity.findViewById(R.id.playerScore4);
-                                                   scoreText.setText("YELLOW:              " + Integer.toString(scores[turn]));
-                                                   break;
-                                               case 4:
-                                                   scoreText = (TextView) mainActivity.findViewById(R.id.playerScore5);
-                                                   scoreText.setText("PINK:                     " + Integer.toString(scores[turn]));
-                                                   break;
-                                           }
-                                       }
-
-                                   }
-
-                               }
-                               if (!squareFilled) {
-
-                                   if ( lineadded) {
-                                       if(MainMenu.AIMode) {
-                                           turn = 1;
-                                           AIturn();
-                                       }
-                                       else
-                                           turn = (turn + 1) % numPlayers;
+                        case MotionEvent.ACTION_UP:
 
 
-                                           MediaPlayer waterDrop = MediaPlayer.create(getContext(), R.raw.waterdropsound);
-                                           waterDrop.start();
+                            boolean isEqual = false;
+                            for (int i = 0; i < lines.size() - 1; i++) {
+                                if (lines.get(i).isEqual(lines.get(lines.size() - 1))) {
+                                    isEqual = true;
+                                    break;
+                                }
+                            }
+                            float startX = lines.get(lines.size() - 1).getStartX();
+                            float startY = lines.get(lines.size() - 1).getStartY();
+                            float stopX = lines.get(lines.size() - 1).getStopX();
+                            float stopY = lines.get(lines.size() - 1).getStopY();
+                            if (((dist(startX, startY, stopX, stopY) < pixelConvert(spacing) || (startX - stopX) * (startY - stopY) != 0) || isEqual || (stopX > pixelConvert(dimension * spacing)-offset) || (stopY > pixelConvert(dimension * spacing)) || (stopX < pixelConvert(spacing)-offset) || (stopY < pixelConvert(spacing)))) {
+                                lines.remove(lines.size() - 1);
+                                lineadded=false;
+                                postInvalidate();
+                            } else {
+
+                                flag = false;
+                                cut = false;
+                                cutOFF = 0;
+                                bestCount = 0;
+                                worstCount = 0;
+                                otherCount = 0;
+                                for (int i = 0; i < squares.size(); i++) {
+                                    if (squares.get(i).isEdge(lines.get(lines.size() - 1))) {
+                                        if (squares.get(i).getFillFactor() < 4) {
+
+                                            squares.get(i).calculateFillFator();
+
+                                        }
+                                        if (squares.get(i).getFillFactor() == 4) {
+
+                                            MediaPlayer waterDrop = MediaPlayer.create(getContext(), R.raw.boxformsound);
+
+                                            waterDrop.start();
+
+                                            squares.get(i).setPlayerID(turn);
+                                            squareFilled = true;
+                                            scores[turn]++;
+                                            totalFill++;
+                                            TextView scoreText;
+                                            switch (turn) {
+
+                                                case 0:
+                                                    scoreText = (TextView) mainActivity.findViewById(R.id.playerScore1);
+                                                    scoreText.setText("RED:                       " + Integer.toString(scores[turn]));
+                                                    break;
+                                                case 1:
+                                                    scoreText = (TextView) mainActivity.findViewById(R.id.playerScore2);
+                                                    scoreText.setText("BLUE:                     " + Integer.toString(scores[turn]));
+                                                    break;
+                                                case 2:
+                                                    scoreText = (TextView) mainActivity.findViewById(R.id.playerScore3);
+                                                    scoreText.setText("GREEN:                 " + Integer.toString(scores[turn]));
+                                                    break;
+                                                case 3:
+                                                    scoreText = (TextView) mainActivity.findViewById(R.id.playerScore4);
+                                                    scoreText.setText("YELLOW:              " + Integer.toString(scores[turn]));
+                                                    break;
+                                                case 4:
+                                                    scoreText = (TextView) mainActivity.findViewById(R.id.playerScore5);
+                                                    scoreText.setText("PINK:                     " + Integer.toString(scores[turn]));
+                                                    break;
+                                            }
+                                        }
+
+                                    }
+
+                                }
+                                if (!squareFilled) {
+
+                                    if ( lineadded) {
+                                        if(MainMenu.AIMode) {
+                                            turn = 1;
+                                            AIturn();
+                                        }
+                                        else
+                                            turn = (turn + 1) % numPlayers;
 
 
-                                   }
-                                   if (!lineadded && MainMenu.AIMode) {
-                                       turn = 0;
-                                   }
-                               } else
-                                   squareFilled = false;
-                               postInvalidate();
+                                        MediaPlayer waterDrop = MediaPlayer.create(getContext(), R.raw.waterdropsound);
+                                        waterDrop.start();
 
 
-                           }
-                           lineadded = false;
+                                    }
+                                    if (!lineadded && MainMenu.AIMode) {
+                                        turn = 0;
+                                    }
+                                } else
+                                    squareFilled = false;
+                                postInvalidate();
 
-                           return false;
 
-                   }
+                            }
+                            lineadded = false;
 
-               } catch (IndexOutOfBoundsException ignored) {
+                            return false;
 
-               }
-           }
+                    }
 
-       }
-           return value;
+                } catch (IndexOutOfBoundsException ignored) {
 
-       }
+                }
+            }
+
+        }
+        return value;
+
+    }
 
     float pixelConvert(float dp) {
 
@@ -512,350 +518,127 @@ public class CustomWidget extends View {
             @Override
             public void run() {
 
-        if(scores[0]+scores[1]<(dimension-1)*(dimension-1)) {
+                if(scores[0]+scores[1]<(dimension-1)*(dimension-1)) {
 
-                Log.i("SATA", "AITurn");
-                int bestIterations = 0;
-                cutOFF++;
-                if (cutOFF > 3) {
-                    cutOFF = 0;
-                    sacrifice = false;
-                    cut = true;
-                }
-                int smallIndex = 0;
-
-                int goodSize = 0;
-                int otherSize = 0;
-                int worstSize = 0;
-                Random random = new Random();
-                bestIndices = new ArrayList<Integer>();
-                otherIndices = new ArrayList<Integer>();
-                worstIndices = new ArrayList<Integer>();
-                worstPrimaryIndices = new ArrayList<Integer>();
-                goodIndices = new ArrayList<Integer>();
-                goodPrimaryIndices = new ArrayList<Integer>();
-                otherPrimaryIndices = new ArrayList<Integer>();
-                chains.clear();
-                scores[1] = 0;
-
-                for (int i = 0; i < squares.size(); i++) {
-                    switch (squares.get(i).getFillFactor()) {
-                        case 0:
-                            if (squares.get(i).getGoodEdges().size() != 0) {
-                                otherPrimaryIndices.add(i);
-                            } else {
-                                otherIndices.add(i);
-                            }
-
-                            otherIndices.add(i);
-
-                            break;
-                        case 1:
-                            if (squares.get(i).getGoodEdges().size() != 0) {
-                                goodPrimaryIndices.add(i);
-                            } else {
-                                goodIndices.add(i);
-                            }
-
-                            break;
-                        case 2:
-
-                            worstIndices.add(i);
-
-
-                            break;
-                        case 3:
-                            bestIndices.add(i);
-                            break;
+                    Log.i("SATA", "AITurn");
+                    int bestIterations = 0;
+                    cutOFF++;
+                    if (cutOFF > 3) {
+                        cutOFF = 0;
+                        sacrifice = false;
+                        cut = true;
                     }
-                    if (squares.get(i).getFillFactor() == 4 && squares.get(i).getPlayerID() == 1) {
-                        scores[1]++;
-                    }
-                }
+                    int smallIndex = 0;
 
-                chains.clear();
-                for (int i = 0; i < squares.size(); i++) {
-                    chains.add(new ArrayList<Integer>());
-                }
-
-                if (goodIndices.size() != 0) {
-                    for (int i = 0; i < goodIndices.size(); i++) {
-                        chains.get(goodIndices.get(i)).add(goodIndices.get(i));
-                        squares.get(goodIndices.get(i)).getCluster(goodIndices.get(i));
-
-                    }
-                }
-
-
-                if (otherIndices.size() != 0) {
-                    for (int i = 0; i < otherIndices.size(); i++) {
-                        chains.get(otherIndices.get(i)).add(otherIndices.get(i));
-                        squares.get(otherIndices.get(i)).getCluster(otherIndices.get(i));
-
-                    }
-                }
-
-                if (worstIndices.size() != 0) {
-                    for (int i = 0; i < worstIndices.size(); i++) {
-                        chains.get(worstIndices.get(i)).add(worstIndices.get(i));
-                        squares.get(worstIndices.get(i)).getCluster(worstIndices.get(i));
-
-                    }
-                }
-
-                if ((bestIndices.size() != 0) && !sacrifice) {
-
-                    pointGain = 0;
-
-                    while (bestIndices.size() != 0) {
-                        bestIterations++;
-
-
-
-
-
-                                lines.add(squares.get(bestIndices.get(0)).getFreeEdges());
-                                lines.get(lines.size() - 1).setPlayerID(1);
-                                boxForm=true;
-
-                                for (int k = 0; k < squares.size(); k++) {
-                                    if (squares.get(k).isEdge(lines.get(lines.size() - 1))) {
-                                        if (squares.get(k).getFillFactor() != 4)
-                                            squares.get(k).calculateFillFator();
-                                        if (squares.get(k).getFillFactor() == 4) {
-                                            scores[1]++;
-                                            pointGain++;
-
-
-                                            TextView txt = (TextView) mainActivity.findViewById(R.id.playerScore2);
-                                            txt.setText("BLUE:                     " + Integer.toString(scores[1]));
-
-                                            squares.get(k).setPlayerID(1);
-                                        }
-                                    }
-
-                                }
-
-                                bestIndices.clear();
-                                worstIndices.clear();
-                                goodIndices.clear();
-                                goodPrimaryIndices.clear();
-                                otherPrimaryIndices.clear();
-                                otherIndices.clear();
-                                for (int i = 0; i < squares.size(); i++) {
-                                    squares.get(i).calculateFillFator();
-                                    switch (squares.get(i).getFillFactor()) {
-                                        case 0:
-                                            if (squares.get(i).getGoodEdges().size() != 0) {
-                                                otherPrimaryIndices.add(i);
-                                            } else {
-                                                otherIndices.add(i);
-                                            }
-
-                                            otherIndices.add(i);
-
-                                            break;
-                                        case 1:
-                                            if (squares.get(i).getGoodEdges().size() != 0) {
-                                                goodPrimaryIndices.add(i);
-                                            } else {
-                                                goodIndices.add(i);
-                                            }
-
-                                            break;
-                                        case 2:
-
-                                            worstIndices.add(i);
-
-
-                                            break;
-                                        case 3:
-                                            bestIndices.add(i);
-                                            break;
-                                    }
-                                }
-
-
-                    }
-
-
-
-                    if (difficulty == 3 && !cut && (scores[1] + scores[0] < (dimension - 1) * (dimension - 1))) {
-
-                        chains.clear();
-                        int smallSize;
-                        smallIndex = 0;
-                        smallSize = 9999;
-                        for (int i = 0; i < squares.size(); i++) {
-                            chains.add(new ArrayList<Integer>());
-                            if (squares.get(i).getFillFactor() != 4 && squares.get(i).getFillFactor() != 3) {
-                                chains.get(i).add(i);
-                                squares.get(i).getCluster(i);
-                                if (chains.get(i).size() < smallSize && chains.get(i).size() != 0) {
-                                    smallSize = chains.get(i).size();
-                                    smallIndex = i;
-                                }
-                            }
-                        }
-                        ArrayList<Line> temp = new ArrayList<Line>();
-                        if (smallSize > pointGain) {
-                            if (bestIterations > 3) {
-                                for (int i = 0; i < 3; i++) {
-                                    temp.add(lines.get(lines.size() - 1));
-                                    lines.remove(lines.get(lines.size() - 1));
-                                }
-                            } else {
-                                boxForm=false;
-                                for (int i = 0; i < bestIterations; i++) {
-                                    temp.add(lines.get(lines.size() - 1));
-                                    lines.remove(lines.get(lines.size() - 1));
-                                }
-                            }
-                        }
-                        int newSmallSizes = 9999;
-                        chains.clear();
-                        for (int i = 0; i < squares.size(); i++) {
-                            squares.get(i).calculateFillFator();
-                        }
-                        for (int i = 0; i < squares.size(); i++) {
-                            chains.add(new ArrayList<Integer>());
-                            if (squares.get(i).getFillFactor() != 4 && squares.get(i).getFillFactor() != 3) {
-                                chains.get(i).add(i);
-                                squares.get(i).getCluster(i);
-                                if (chains.get(i).size() < newSmallSizes && chains.get(i).size() != 0) {
-                                    newSmallSizes = chains.get(i).size();
-                                    smallIndex = i;
-                                }
-                            }
-                        }
-
-                        if (newSmallSizes < pointGain) {
-
-                            sacrifice = true;
-
-                        } else {
-
-                            for (int i = 0; i < temp.size(); i++) {
-                                boxForm=true;
-                                lines.add(temp.get(i));
-                                lines.get(lines.size() - 1).setPlayerID(1);
-                            }
-
-                            sacrifice = false;
-                        }
-                        for (int i = 0; i < squares.size(); i++) {
-                            squares.get(i).calculateFillFator();
-                        }
-                        AIturn();
-                    } else {
-                        if (cut) {
-                            cutOFF = 0;
-                            cut = false;
-                        }
-                        scores[1]=0;
-
-
-                        AIturn();
-                    }
-
-
-                } else if (otherPrimaryIndices.size() != 0 && ((difficulty == 3) || (difficulty == 2))) {
-                    sacrifice = false;
-                    ArrayList<Line> goodLines = squares.get(otherPrimaryIndices.get(random.nextInt(otherPrimaryIndices.size()))).getGoodEdges();
-                    lines.add(goodLines.get(random.nextInt(goodLines.size())));
-                    lines.get(lines.size() - 1).setPlayerID(1);
-                    for (int k = 0; k < squares.size(); k++) {
-                        if (squares.get(k).isEdge(lines.get(lines.size() - 1))) {
-                            squares.get(k).calculateFillFator();
-                            if (squares.get(k).getFillFactor() == 4) {
-                                scores[1]++;
-
-                                TextView txt = (TextView) mainActivity.findViewById(R.id.playerScore2);
-                                txt.setText("BLUE:                     " + Integer.toString(scores[1]));
-
-                                squares.get(k).setPlayerID(1);
-                            }
-                        }
-                    }
-
-                } else if (goodPrimaryIndices.size() != 0 && ((difficulty == 3) || (difficulty == 2))) {
-
-                    sacrifice = false;
-
-                    ArrayList<Line> goodLines = squares.get(goodPrimaryIndices.get(random.nextInt(goodPrimaryIndices.size()))).getGoodEdges();
-                    lines.add(goodLines.get(random.nextInt(goodLines.size())));
-                    lines.get(lines.size() - 1).setPlayerID(1);
-                    for (int k = 0; k < squares.size(); k++) {
-                        if (squares.get(k).isEdge(lines.get(lines.size() - 1))) {
-                            squares.get(k).calculateFillFator();
-                            if (squares.get(k).getFillFactor() == 4) {
-                                scores[1]++;
-
-                                TextView txt = (TextView) mainActivity.findViewById(R.id.playerScore2);
-                                txt.setText("BLUE:                     " + Integer.toString(scores[1]));
-
-                                squares.get(k).setPlayerID(1);
-                            }
-                        }
-                    }
-
-
-                } else if (difficulty == 3 || difficulty ==2) {
+                    int goodSize = 0;
+                    int otherSize = 0;
+                    int worstSize = 0;
+                    Random random = new Random();
+                    bestIndices = new ArrayList<Integer>();
+                    otherIndices = new ArrayList<Integer>();
+                    worstIndices = new ArrayList<Integer>();
+                    worstPrimaryIndices = new ArrayList<Integer>();
+                    goodIndices = new ArrayList<Integer>();
+                    goodPrimaryIndices = new ArrayList<Integer>();
+                    otherPrimaryIndices = new ArrayList<Integer>();
                     chains.clear();
-                    int smallSize;
-                    smallIndex = 0;
-                    smallSize = 9999;
+                    scores[1] = 0;
+
+                    for (int i = 0; i < squares.size(); i++) {
+                        switch (squares.get(i).getFillFactor()) {
+                            case 0:
+                                if (squares.get(i).getGoodEdges().size() != 0) {
+                                    otherPrimaryIndices.add(i);
+                                } else {
+                                    otherIndices.add(i);
+                                }
+
+                                otherIndices.add(i);
+
+                                break;
+                            case 1:
+                                if (squares.get(i).getGoodEdges().size() != 0) {
+                                    goodPrimaryIndices.add(i);
+                                } else {
+                                    goodIndices.add(i);
+                                }
+
+                                break;
+                            case 2:
+
+                                worstIndices.add(i);
+
+
+                                break;
+                            case 3:
+                                bestIndices.add(i);
+                                break;
+                        }
+                        if (squares.get(i).getFillFactor() == 4 && squares.get(i).getPlayerID() == 1) {
+                            scores[1]++;
+                        }
+                    }
+
+                    chains.clear();
                     for (int i = 0; i < squares.size(); i++) {
                         chains.add(new ArrayList<Integer>());
-                        if (squares.get(i).getFillFactor() != 4 && squares.get(i).getFillFactor() != 3) {
-                            chains.get(i).add(i);
-                            squares.get(i).getCluster(i);
-                            if (chains.get(i).size() < smallSize && chains.get(i).size() != 0) {
-                                smallSize = chains.get(i).size();
-                                smallIndex = i;
-                            }
+                    }
+
+                    if (goodIndices.size() != 0) {
+                        for (int i = 0; i < goodIndices.size(); i++) {
+                            chains.get(goodIndices.get(i)).add(goodIndices.get(i));
+                            squares.get(goodIndices.get(i)).getCluster(goodIndices.get(i));
+
                         }
                     }
 
-                    Line l = squares.get(smallIndex).getFreeEdges(true);
-                    if (l != null) {
-                        lines.add(squares.get(smallIndex).getFreeEdges(true));
-                        lines.get(lines.size() - 1).setPlayerID(1);
-                        for (int k = 0; k < squares.size(); k++) {
-                            if (squares.get(k).isEdge(lines.get(lines.size() - 1))) {
-                                squares.get(k).calculateFillFator();
-                                if (squares.get(k).getFillFactor() == 4) {
-                                    scores[1]++;
 
-                                    TextView txt = (TextView) mainActivity.findViewById(R.id.playerScore2);
-                                    txt.setText("BLUE:                     " + Integer.toString(scores[1]));
+                    if (otherIndices.size() != 0) {
+                        for (int i = 0; i < otherIndices.size(); i++) {
+                            chains.get(otherIndices.get(i)).add(otherIndices.get(i));
+                            squares.get(otherIndices.get(i)).getCluster(otherIndices.get(i));
 
-                                    squares.get(k).setPlayerID(1);
-                                }
-                            }
                         }
                     }
-                    else{
+
+                    if (worstIndices.size() != 0) {
+                        for (int i = 0; i < worstIndices.size(); i++) {
+                            chains.get(worstIndices.get(i)).add(worstIndices.get(i));
+                            squares.get(worstIndices.get(i)).getCluster(worstIndices.get(i));
+
+                        }
+                    }
+
+                    if ((bestIndices.size() != 0) && !sacrifice) {
+
+                        pointGain = 0;
+
                         while (bestIndices.size() != 0) {
                             bestIterations++;
+
+
+
 
 
                             lines.add(squares.get(bestIndices.get(0)).getFreeEdges());
                             lines.get(lines.size() - 1).setPlayerID(1);
                             boxForm=true;
+
                             for (int k = 0; k < squares.size(); k++) {
                                 if (squares.get(k).isEdge(lines.get(lines.size() - 1))) {
                                     if (squares.get(k).getFillFactor() != 4)
                                         squares.get(k).calculateFillFator();
                                     if (squares.get(k).getFillFactor() == 4) {
                                         scores[1]++;
+                                        pointGain++;
+
+
                                         TextView txt = (TextView) mainActivity.findViewById(R.id.playerScore2);
                                         txt.setText("BLUE:                     " + Integer.toString(scores[1]));
 
                                         squares.get(k).setPlayerID(1);
                                     }
                                 }
-
 
                             }
 
@@ -897,92 +680,315 @@ public class CustomWidget extends View {
                                         break;
                                 }
                             }
+
+
                         }
-                        AIturn();
 
-                    }
 
-                    sacrifice = false;
-                } else if (goodIndices.size() != 0) {
 
-                    sacrifice = false;
-                    // Toast.makeText(getContext(),"good",Toast.LENGTH_SHORT).show();
-                    lines.add(squares.get(goodIndices.get(random.nextInt(goodIndices.size()))).getFreeEdges());
+                        if (difficulty == 3 && !cut && (scores[1] + scores[0] < (dimension - 1) * (dimension - 1))) {
 
-                    lines.get(lines.size() - 1).setPlayerID(1);
-                    for (int k = 0; k < squares.size(); k++) {
-                        if (squares.get(k).isEdge(lines.get(lines.size() - 1))) {
-                            squares.get(k).calculateFillFator();
-                            if (squares.get(k).getFillFactor() == 4) {
-                                scores[1]++;
+                            chains.clear();
+                            int smallSize;
+                            smallIndex = 0;
+                            smallSize = 9999;
+                            for (int i = 0; i < squares.size(); i++) {
+                                chains.add(new ArrayList<Integer>());
+                                if (squares.get(i).getFillFactor() != 4 && squares.get(i).getFillFactor() != 3) {
+                                    chains.get(i).add(i);
+                                    squares.get(i).getCluster(i);
+                                    if (chains.get(i).size() < smallSize && chains.get(i).size() != 0) {
+                                        smallSize = chains.get(i).size();
+                                        smallIndex = i;
+                                    }
+                                }
+                            }
+                            ArrayList<Line> temp = new ArrayList<Line>();
+                            if (smallSize > pointGain) {
+                                if (bestIterations > 3) {
+                                    for (int i = 0; i < 3; i++) {
+                                        temp.add(lines.get(lines.size() - 1));
+                                        lines.remove(lines.get(lines.size() - 1));
+                                    }
+                                } else {
+                                    boxForm=false;
+                                    for (int i = 0; i < bestIterations; i++) {
+                                        temp.add(lines.get(lines.size() - 1));
+                                        lines.remove(lines.get(lines.size() - 1));
+                                    }
+                                }
+                            }
+                            int newSmallSizes = 9999;
+                            chains.clear();
+                            for (int i = 0; i < squares.size(); i++) {
+                                squares.get(i).calculateFillFator();
+                            }
+                            for (int i = 0; i < squares.size(); i++) {
+                                chains.add(new ArrayList<Integer>());
+                                if (squares.get(i).getFillFactor() != 4 && squares.get(i).getFillFactor() != 3) {
+                                    chains.get(i).add(i);
+                                    squares.get(i).getCluster(i);
+                                    if (chains.get(i).size() < newSmallSizes && chains.get(i).size() != 0) {
+                                        newSmallSizes = chains.get(i).size();
+                                        smallIndex = i;
+                                    }
+                                }
+                            }
 
-                                TextView txt = (TextView) mainActivity.findViewById(R.id.playerScore2);
-                                txt.setText("BLUE:                     " + Integer.toString(scores[1]));
+                            if (newSmallSizes < pointGain) {
 
-                                squares.get(k).setPlayerID(1);
+                                sacrifice = true;
+
+                            } else {
+
+                                for (int i = 0; i < temp.size(); i++) {
+                                    boxForm=true;
+                                    lines.add(temp.get(i));
+                                    lines.get(lines.size() - 1).setPlayerID(1);
+                                }
+
+                                sacrifice = false;
+                            }
+                            for (int i = 0; i < squares.size(); i++) {
+                                squares.get(i).calculateFillFator();
+                            }
+                            AIturn();
+                        } else {
+                            if (cut) {
+                                cutOFF = 0;
+                                cut = false;
+                            }
+                            scores[1]=0;
+
+
+                            AIturn();
+                        }
+
+
+                    } else if (otherPrimaryIndices.size() != 0 && ((difficulty == 3) || (difficulty == 2))) {
+                        sacrifice = false;
+                        ArrayList<Line> goodLines = squares.get(otherPrimaryIndices.get(random.nextInt(otherPrimaryIndices.size()))).getGoodEdges();
+                        lines.add(goodLines.get(random.nextInt(goodLines.size())));
+                        lines.get(lines.size() - 1).setPlayerID(1);
+                        for (int k = 0; k < squares.size(); k++) {
+                            if (squares.get(k).isEdge(lines.get(lines.size() - 1))) {
+                                squares.get(k).calculateFillFator();
+                                if (squares.get(k).getFillFactor() == 4) {
+                                    scores[1]++;
+
+                                    TextView txt = (TextView) mainActivity.findViewById(R.id.playerScore2);
+                                    txt.setText("BLUE:                     " + Integer.toString(scores[1]));
+
+                                    squares.get(k).setPlayerID(1);
+                                }
                             }
                         }
-                    }
 
-                } else if (otherIndices.size() != 0) {
+                    } else if (goodPrimaryIndices.size() != 0 && ((difficulty == 3) || (difficulty == 2))) {
 
-                    sacrifice = false;
-                    lines.add(squares.get(otherIndices.get(random.nextInt(otherIndices.size()))).getFreeEdges());
+                        sacrifice = false;
 
-                    lines.get(lines.size() - 1).setPlayerID(1);
-                    for (int k = 0; k < squares.size(); k++) {
-                        if (squares.get(k).isEdge(lines.get(lines.size() - 1))) {
-                            squares.get(k).calculateFillFator();
-                            if (squares.get(k).getFillFactor() == 4) {
-                                scores[1]++;
+                        ArrayList<Line> goodLines = squares.get(goodPrimaryIndices.get(random.nextInt(goodPrimaryIndices.size()))).getGoodEdges();
+                        lines.add(goodLines.get(random.nextInt(goodLines.size())));
+                        lines.get(lines.size() - 1).setPlayerID(1);
+                        for (int k = 0; k < squares.size(); k++) {
+                            if (squares.get(k).isEdge(lines.get(lines.size() - 1))) {
+                                squares.get(k).calculateFillFator();
+                                if (squares.get(k).getFillFactor() == 4) {
+                                    scores[1]++;
 
-                                TextView txt = (TextView) mainActivity.findViewById(R.id.playerScore2);
-                                txt.setText("BLUE:                     " + Integer.toString(scores[1]));
+                                    TextView txt = (TextView) mainActivity.findViewById(R.id.playerScore2);
+                                    txt.setText("BLUE:                     " + Integer.toString(scores[1]));
 
-                                squares.get(k).setPlayerID(1);
+                                    squares.get(k).setPlayerID(1);
+                                }
                             }
                         }
-                    }
-
-                } else if (worstIndices.size() != 0) {
-
-                    sacrifice = false;
-                    lines.add(squares.get(worstIndices.get(random.nextInt(worstIndices.size()))).getFreeEdges());
-                    lines.get(lines.size() - 1).setPlayerID(1);
-
-                    for (int k = 0; k < squares.size(); k++) {
-                        if (squares.get(k).isEdge(lines.get(lines.size() - 1))) {
-                            squares.get(k).calculateFillFator();
-                            if (squares.get(k).getFillFactor() == 4) {
-                                scores[1]++;
 
 
-                                TextView txt = (TextView) mainActivity.findViewById(R.id.playerScore2);
-                                txt.setText("BLUE:                     " + Integer.toString(scores[1]));
-
-                                squares.get(k).setPlayerID(1);
+                    } else if (difficulty == 3 || difficulty ==2) {
+                        chains.clear();
+                        int smallSize;
+                        smallIndex = 0;
+                        smallSize = 9999;
+                        for (int i = 0; i < squares.size(); i++) {
+                            chains.add(new ArrayList<Integer>());
+                            if (squares.get(i).getFillFactor() != 4 && squares.get(i).getFillFactor() != 3) {
+                                chains.get(i).add(i);
+                                squares.get(i).getCluster(i);
+                                if (chains.get(i).size() < smallSize && chains.get(i).size() != 0) {
+                                    smallSize = chains.get(i).size();
+                                    smallIndex = i;
+                                }
                             }
                         }
+
+                        Line l = squares.get(smallIndex).getFreeEdges(true);
+                        if (l != null) {
+                            lines.add(squares.get(smallIndex).getFreeEdges(true));
+                            lines.get(lines.size() - 1).setPlayerID(1);
+                            for (int k = 0; k < squares.size(); k++) {
+                                if (squares.get(k).isEdge(lines.get(lines.size() - 1))) {
+                                    squares.get(k).calculateFillFator();
+                                    if (squares.get(k).getFillFactor() == 4) {
+                                        scores[1]++;
+
+                                        TextView txt = (TextView) mainActivity.findViewById(R.id.playerScore2);
+                                        txt.setText("BLUE:                     " + Integer.toString(scores[1]));
+
+                                        squares.get(k).setPlayerID(1);
+                                    }
+                                }
+                            }
+                        }
+                        else{
+                            while (bestIndices.size() != 0) {
+                                bestIterations++;
+
+
+                                lines.add(squares.get(bestIndices.get(0)).getFreeEdges());
+                                lines.get(lines.size() - 1).setPlayerID(1);
+                                boxForm=true;
+                                for (int k = 0; k < squares.size(); k++) {
+                                    if (squares.get(k).isEdge(lines.get(lines.size() - 1))) {
+                                        if (squares.get(k).getFillFactor() != 4)
+                                            squares.get(k).calculateFillFator();
+                                        if (squares.get(k).getFillFactor() == 4) {
+                                            scores[1]++;
+                                            TextView txt = (TextView) mainActivity.findViewById(R.id.playerScore2);
+                                            txt.setText("BLUE:                     " + Integer.toString(scores[1]));
+
+                                            squares.get(k).setPlayerID(1);
+                                        }
+                                    }
+
+
+                                }
+
+                                bestIndices.clear();
+                                worstIndices.clear();
+                                goodIndices.clear();
+                                goodPrimaryIndices.clear();
+                                otherPrimaryIndices.clear();
+                                otherIndices.clear();
+                                for (int i = 0; i < squares.size(); i++) {
+                                    squares.get(i).calculateFillFator();
+                                    switch (squares.get(i).getFillFactor()) {
+                                        case 0:
+                                            if (squares.get(i).getGoodEdges().size() != 0) {
+                                                otherPrimaryIndices.add(i);
+                                            } else {
+                                                otherIndices.add(i);
+                                            }
+
+                                            otherIndices.add(i);
+
+                                            break;
+                                        case 1:
+                                            if (squares.get(i).getGoodEdges().size() != 0) {
+                                                goodPrimaryIndices.add(i);
+                                            } else {
+                                                goodIndices.add(i);
+                                            }
+
+                                            break;
+                                        case 2:
+
+                                            worstIndices.add(i);
+
+
+                                            break;
+                                        case 3:
+                                            bestIndices.add(i);
+                                            break;
+                                    }
+                                }
+                            }
+                            AIturn();
+
+                        }
+
+                        sacrifice = false;
+                    } else if (goodIndices.size() != 0) {
+
+                        sacrifice = false;
+                        // Toast.makeText(getContext(),"good",Toast.LENGTH_SHORT).show();
+                        lines.add(squares.get(goodIndices.get(random.nextInt(goodIndices.size()))).getFreeEdges());
+
+                        lines.get(lines.size() - 1).setPlayerID(1);
+                        for (int k = 0; k < squares.size(); k++) {
+                            if (squares.get(k).isEdge(lines.get(lines.size() - 1))) {
+                                squares.get(k).calculateFillFator();
+                                if (squares.get(k).getFillFactor() == 4) {
+                                    scores[1]++;
+
+                                    TextView txt = (TextView) mainActivity.findViewById(R.id.playerScore2);
+                                    txt.setText("BLUE:                     " + Integer.toString(scores[1]));
+
+                                    squares.get(k).setPlayerID(1);
+                                }
+                            }
+                        }
+
+                    } else if (otherIndices.size() != 0) {
+
+                        sacrifice = false;
+                        lines.add(squares.get(otherIndices.get(random.nextInt(otherIndices.size()))).getFreeEdges());
+
+                        lines.get(lines.size() - 1).setPlayerID(1);
+                        for (int k = 0; k < squares.size(); k++) {
+                            if (squares.get(k).isEdge(lines.get(lines.size() - 1))) {
+                                squares.get(k).calculateFillFator();
+                                if (squares.get(k).getFillFactor() == 4) {
+                                    scores[1]++;
+
+                                    TextView txt = (TextView) mainActivity.findViewById(R.id.playerScore2);
+                                    txt.setText("BLUE:                     " + Integer.toString(scores[1]));
+
+                                    squares.get(k).setPlayerID(1);
+                                }
+                            }
+                        }
+
+                    } else if (worstIndices.size() != 0) {
+
+                        sacrifice = false;
+                        lines.add(squares.get(worstIndices.get(random.nextInt(worstIndices.size()))).getFreeEdges());
+                        lines.get(lines.size() - 1).setPlayerID(1);
+
+                        for (int k = 0; k < squares.size(); k++) {
+                            if (squares.get(k).isEdge(lines.get(lines.size() - 1))) {
+                                squares.get(k).calculateFillFator();
+                                if (squares.get(k).getFillFactor() == 4) {
+                                    scores[1]++;
+
+
+                                    TextView txt = (TextView) mainActivity.findViewById(R.id.playerScore2);
+                                    txt.setText("BLUE:                     " + Integer.toString(scores[1]));
+
+                                    squares.get(k).setPlayerID(1);
+                                }
+                            }
+                        }
+
+                    } else {
+
                     }
 
-                } else {
 
+                    turn = 0;
+                    postInvalidate();
+                    if(!boxForm){
+                        if(lineSize<lines.size()) {
+                            MediaPlayer waterDrop = MediaPlayer.create(getContext(), R.raw.waterdropsound);
+                            waterDrop.start();
+                        }
+                    }else{
+                        MediaPlayer waterDrop=MediaPlayer.create(getContext(),R.raw.boxformsound);
+                        waterDrop.start();
+                        boxForm=false;
+                    }
                 }
-
-
-            turn = 0;
-            postInvalidate();
-            if(!boxForm){
-                if(lineSize<lines.size()) {
-                    MediaPlayer waterDrop = MediaPlayer.create(getContext(), R.raw.waterdropsound);
-                    waterDrop.start();
-                }
-            }else{
-                MediaPlayer waterDrop=MediaPlayer.create(getContext(),R.raw.boxformsound);
-                waterDrop.start();
-                boxForm=false;
-            }
-        }
 
             }
         },400);
@@ -993,97 +999,97 @@ public class CustomWidget extends View {
         MediaPlayer waterDrop=MediaPlayer.create(getContext(),R.raw.erasersound);
         waterDrop.start();
 
-            cut = false;
-            cutOFF = 0;
-            try {
-                if (MainMenu.AIMode) {
-                    while (lines.get(lines.size() - 1).getPlayerID() == 1) {
+        cut = false;
+        cutOFF = 0;
+        try {
+            if (MainMenu.AIMode) {
+                while (lines.get(lines.size() - 1).getPlayerID() == 1) {
 
-                        for (int i = 0; i < squares.size(); i++) {
-                            if (squares.get(i).isEdge(lines.get(lines.size() - 1))) {
-
-                                squares.get(i).decreaseFillFactor();
-                                if (squares.get(i).getFillFactor() == 3) {
-                                    scores[1]--;
-
-                                }
-                            }
-                        }
-                        lines.remove(lines.size() - 1);
-
-
-                    }
                     for (int i = 0; i < squares.size(); i++) {
                         if (squares.get(i).isEdge(lines.get(lines.size() - 1))) {
 
                             squares.get(i).decreaseFillFactor();
                             if (squares.get(i).getFillFactor() == 3) {
-                                scores[0]--;
-
-                            }
-                        }
-                    }
-                    lines.remove(lines.size() - 1);
-                    TextView txt = (TextView) mainActivity.findViewById(R.id.playerScore1);
-                    txt.setText("RED:                       " + Integer.toString(scores[0]));
-                    txt = (TextView) mainActivity.findViewById(R.id.playerScore2);
-                    txt.setText("BLUE:                     " + Integer.toString(scores[1]));
-
-                    turn = 0;
-                } else {
-                    boolean flag = true;
-                    for (int i = 0; i < squares.size(); i++) {
-                        if (squares.get(i).isEdge(lines.get(lines.size() - 1))) {
-                            if (squares.get(i).getFillFactor() == 4) {
-                                flag = false;
-                            }
-                            squares.get(i).decreaseFillFactor();
-                            if (squares.get(i).getFillFactor() == 3) {
-                                scores[squares.get(i).getPlayerID()]--;
+                                scores[1]--;
 
                             }
                         }
                     }
                     lines.remove(lines.size() - 1);
 
-
-                    TextView scoreText;
-                    switch (turn) {
-
-                        case 0:
-                            scoreText = (TextView) mainActivity.findViewById(R.id.playerScore1);
-                            scoreText.setText("RED:                       " + Integer.toString(scores[turn]));
-                            break;
-                        case 1:
-                            scoreText = (TextView) mainActivity.findViewById(R.id.playerScore2);
-                            scoreText.setText("BLUE:                     " + Integer.toString(scores[turn]));
-                            break;
-                        case 2:
-                            scoreText = (TextView) mainActivity.findViewById(R.id.playerScore3);
-                            scoreText.setText("GREEN:                 " + Integer.toString(scores[turn]));
-                            break;
-                        case 3:
-                            scoreText = (TextView) mainActivity.findViewById(R.id.playerScore4);
-                            scoreText.setText("YELLOW:              " + Integer.toString(scores[turn]));
-                            break;
-                        case 4:
-                            scoreText = (TextView) mainActivity.findViewById(R.id.playerScore5);
-                            scoreText.setText("PINK:                     " + Integer.toString(scores[turn]));
-                            break;
-                    }
-                    if (flag) {
-                        if (turn == 0) {
-                            turn = numPlayers - 1;
-                        } else {
-                            turn = (turn - 1) % numPlayers;
-                        }
-                    }
 
                 }
+                for (int i = 0; i < squares.size(); i++) {
+                    if (squares.get(i).isEdge(lines.get(lines.size() - 1))) {
 
-                postInvalidate();
-            } catch (Exception e) {
+                        squares.get(i).decreaseFillFactor();
+                        if (squares.get(i).getFillFactor() == 3) {
+                            scores[0]--;
+
+                        }
+                    }
+                }
+                lines.remove(lines.size() - 1);
+                TextView txt = (TextView) mainActivity.findViewById(R.id.playerScore1);
+                txt.setText("RED:                       " + Integer.toString(scores[0]));
+                txt = (TextView) mainActivity.findViewById(R.id.playerScore2);
+                txt.setText("BLUE:                     " + Integer.toString(scores[1]));
+
+                turn = 0;
+            } else {
+                boolean flag = true;
+                for (int i = 0; i < squares.size(); i++) {
+                    if (squares.get(i).isEdge(lines.get(lines.size() - 1))) {
+                        if (squares.get(i).getFillFactor() == 4) {
+                            flag = false;
+                        }
+                        squares.get(i).decreaseFillFactor();
+                        if (squares.get(i).getFillFactor() == 3) {
+                            scores[squares.get(i).getPlayerID()]--;
+
+                        }
+                    }
+                }
+                lines.remove(lines.size() - 1);
+
+
+                TextView scoreText;
+                switch (turn) {
+
+                    case 0:
+                        scoreText = (TextView) mainActivity.findViewById(R.id.playerScore1);
+                        scoreText.setText("RED:                       " + Integer.toString(scores[turn]));
+                        break;
+                    case 1:
+                        scoreText = (TextView) mainActivity.findViewById(R.id.playerScore2);
+                        scoreText.setText("BLUE:                     " + Integer.toString(scores[turn]));
+                        break;
+                    case 2:
+                        scoreText = (TextView) mainActivity.findViewById(R.id.playerScore3);
+                        scoreText.setText("GREEN:                 " + Integer.toString(scores[turn]));
+                        break;
+                    case 3:
+                        scoreText = (TextView) mainActivity.findViewById(R.id.playerScore4);
+                        scoreText.setText("YELLOW:              " + Integer.toString(scores[turn]));
+                        break;
+                    case 4:
+                        scoreText = (TextView) mainActivity.findViewById(R.id.playerScore5);
+                        scoreText.setText("PINK:                     " + Integer.toString(scores[turn]));
+                        break;
+                }
+                if (flag) {
+                    if (turn == 0) {
+                        turn = numPlayers - 1;
+                    } else {
+                        turn = (turn - 1) % numPlayers;
+                    }
+                }
+
             }
+
+            postInvalidate();
+        } catch (Exception e) {
+        }
 
     }
 
@@ -1283,9 +1289,9 @@ public class CustomWidget extends View {
                 }
                 for(int j=0;j<squares.size();j++){
                     if(squares.get(j).isEdge(getEdge(i))&&squares.get(j)!=this){
-                           if(squares.get(j).getFillFactor()==3){
-                               flag=false;
-                           }
+                        if(squares.get(j).getFillFactor()==3){
+                            flag=false;
+                        }
                     }
                 }
                 if(flag)freeEdges.add(getEdge(i));
